@@ -1,5 +1,7 @@
 # Traffic Sign Recognition Program
 
+[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+
 In this project of the Udacity [Self-Driving Car NanoDegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013) program, I am implementing a Convolutional Neural Network (CNN) using [TensorFlow](https://www.tensorflow.org/) to classify traffic sign images using the [GTSRB (German Traffic Sign) Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset).
 
 **Build a Traffic Sign Recognition Project**
@@ -134,7 +136,7 @@ In the exported notebook [P3.html](assets/P3.html) the following hyperparameter 
 * `LEARNING_RATE`: Initial learning rate for the optimizer of *0.001*
 * `DROPOUT_RATE`: Probability for dropping inputs in dropout layers of *0.3*
 * `BATCH_SIZE`: Batch size of *128*
-* `EPOCHS`: Number of Epochs *100*
+* `EPOCHS`: Number of Epochs *40*
 
 For this particular training run, the following accuracies were achieved: 
 * Training set accuracy of *0.999*
@@ -249,4 +251,4 @@ The implementation of this project is based on the 'Conda' lab environment provi
 It uses TensorFlow v1, at least for the time being.
 
 ## License
-The contents of this repository are covered under the [MIT License](https://github.com/mkleesiek/CarND-LaneLines-P1/blob/master/LICENSE)
+The contents of this repository are covered under the [MIT License](https://github.com/mkleesiek/CarND-LaneLines-P1/blob/master/LICENSE).
