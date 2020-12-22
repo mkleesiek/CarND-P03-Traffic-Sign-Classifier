@@ -1,6 +1,6 @@
 # Traffic Sign Recognition Program
 
-In this project of the Udacity [Self-Driving Car NanoDegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013) program, I am implementing a Convolutional Neural Network (CNN) using [TensorFlow](https://www.tensorflow.org/) to classify traffic sign images using the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset).
+In this project of the Udacity [Self-Driving Car NanoDegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013) program, I am implementing a Convolutional Neural Network (CNN) using [TensorFlow](https://www.tensorflow.org/) to classify traffic sign images using the [GTSRB (German Traffic Sign) Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset).
 
 **Build a Traffic Sign Recognition Project**
 
@@ -61,7 +61,7 @@ Convolutional neural networks are invariant to translation in the image, but not
 ![Rescaled image](assets/prep_resize.png)
 
 3. Normalization
-In order to make samples from extreme lighting conditions more comparable and enable the CNN in its initial training phase to work with simple weights centered around zero, each individual image is normalized in its luminosity. This normalization takes into account the minimum and maximum luminosity of each image and rescales its pixel values to a range in [-1.0, +1.0].
+In order to make samples from extreme lighting conditions more comparable and enable the CNN in its initial training phase to work with simple weights centered around zero, each individual image is normalized in its luminosity. This normalization takes into account the minimum and maximum luminosity of each image and rescales its pixel float values to a range in [-1.0, +1.0].
    
 
 #### Augmentation and Balancing of the Training Data
@@ -72,15 +72,15 @@ The augmentation is performed class by class. For each class, an image is random
 
 ![Original dataset image](assets/augm_orig.png)
 
-The image is rotated by a random amount within [-15, +15] degree and a random amount of Gaussian noise is applied.
+The image is rotated by a random amount within [-15, +15] degree and a random amount of Gaussian noise with sigma = 0.01 is applied.
 
 ![Original dataset image](assets/augm_rot.png)
 
 These steps are repeated, until for each class the data is augmented to total of *6030* samples evenly.
 
-The augmented training dataset now contains *259290* samples, which is roughly 7 times the original size.
+The augmented training dataset now contains *172860* samples, which is roughly *5 times* the original size.
 
-#### 2. Convolutional Neural Network Architecture
+### Convolutional Neural Network Architecture
 
 The CNN model implemented in cell 8 and 9 of the notebook for this particular project is a tuned [LeNet-5](http://yann.lecun.com/exdb/lenet/) model.
 
@@ -112,79 +112,126 @@ The CNN model implemented in cell 8 and 9 of the notebook for this particular pr
 A LeNet architecture appears to be a good fit for the task at hand: Dissect image input data into translation invariant feature maps, feeding those into a series of fully connected layers to predict the class labels. 
 
 I started designing and training the model with the original unbalanced dataset, using a simplified version of the above scheme, without the dropout and using RELU instead of tanh activation.
-In order to assess the stability of the trained model, I would plot the training and validation set accuracy over the number of epochs. While experimenting with the hyperparameters of the model, I aimed at a 'steep' learning curve and a high validation set accuracy, while maintaining a reasonable training set accuracy to avoid overfitting.
+In order to assess the stability of the trained model, I would plot the training and validation set accuracy over the number of epochs. While experimenting with the hyperparameters of the model, I aimed at a reasonable 'steep' learning curve and a high validation set accuracy, which should never start moving away from the training set accuracy - that would be an indicator of overfitting.
 
-With the introduction of dropouts in the fully connected layers, overfitting indicated by a training accuracy of nearly 1.0 was effectively avoided. With a moderate dropout rate, the final validation accuracy seemed unaffected.
+With the introduction of dropouts in the fully connected layers, overfitting was effectively avoided and did not pose a challenge during my optimization attempts. With a moderate dropout rate, the final validation accuracy seemed unaffected.
 
-Replacing the 'RELU' activations with 'tanh' accelerated training during the first epochs of a run considerably. Presumably, with the input data properly normalized to values around zero and weights initialized accordingly, 'tanh' provides more favourable gradients compared to 'RELU' which is flat for negative values.
+Replacing the 'RELU' activations with 'tanh' accelerated training, yielding slightly higher accuracies within less epochs. Presumably, with the input data properly normalized to values around zero and weights initialized accordingly, 'tanh' provides more favourable gradients compared to 'RELU' which is flat for negative values.
+
+Weights are initialized with random numbers from a normal distribution with standard deviation `SIGMA` = 0.1 and mean `MU` = 0.0, truncated a 2 times the standard deviation.
 
 Experiments with L2 regularization, effectively putting a penalty on weights in the fully connected layers, did not yield any improvements. The responsible hyperparameter `BETA` in the notebook is set to `0`, disabling L2 regularization.
 
-Several modifications to the model with respect to the dimensionality of the hidden layers were attempted. Neither decreasing or, more intuitively, increasing the dimensions and thus depth of feature layers did improve the model.
+Several modifications to the model with respect to the dimensionality of the hidden layers were attempted. Neither decreasing or increasing the dimensions and thus depth of feature layers and number of free parameters did improve the model. The latter seemed to lead to overfitting.
 
 The preprocessing stage as well as the augmentation of the imbalanced training dataset resulted in a remarkable improvement of the model (both at least by 1% in accuracy each).
 
-In their final setting, the hyperparameters for this model are:
-* `RATE`: Initial learning rate for the optimizer of *0.001*
-* `KEEP_PROB`: Keeping probability for dropout layers of *0.7*
+The remaining hyperparameters were iteratively optimized by hand, taking the training and validation accuracies as indicators for a stable model.
+
+![Accuracy and Loss vs. Epoch](assets/accuracy_epoch.png)
+
+In the exported notebook [P3.html](assets/P3.html) the following hyperparameter settings were chosen:
+* `LEARNING_RATE`: Initial learning rate for the optimizer of *0.001*
+* `DROPOUT_RATE`: Probability for dropping inputs in dropout layers of *0.3*
 * `BATCH_SIZE`: Batch size of *128*
 * `EPOCHS`: Number of Epochs *100*
 
-The final model results are:
-* training set accuracy of *0.98*
-* validation set accuracy of *0.98* 
-* test set accuracy of **0.97**
+For this particular training run, the following accuracies were achieved: 
+* Training set accuracy of *0.999*
+* Validation set accuracy of *0.976* 
+* Test set accuracy of **0.970**
 
-With the test set accuracy remaining stable at the same value for several training runs and the training/validation accuracy showing no sign of overfitting, classification attempts on new images con be attempted with confidence.
+With the test set accuracy remaining stable at the same value for several training runs and the training/validation accuracy showing little sign of overfitting, classification attempts on new images con be attempted with confidence.
+
+The confusion matrix printed in cell 13 allows for a closer analysis of images classes causing the most issues - the row represent the labels, the columns the predictions. With the model properly tuned, no significant off-diagonal elements can be seen for the test set.
 
 ### Test the Model on New Images
 
-For this test several German traffic signs were picked from the web:
+For this test several German traffic signs were picked from the web.
+The region of interest (red rectangle) was added by hand to allow the pre-processing stage to normalize and crop the input just as with the GTSRB dataset for training.
 
-![New Images](assets/summary_new.jpg)
+![New Images](assets/summary_new.png)
 
-The first image might be difficult to classify because ...
+During the pre-processing stage, those test images were converted to grayscale, cropped and scaled so that their ROI lies within the target 32x32 pixel size.
 
-#### 2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
+![New Images Pre-processed](assets/summary_new_prep.png)
 
-Here are the results of the prediction:
+Classifying these 5 new images with the trained model yields an accuracy of *80.0%*, with image 3 being the only one not correctly classified. This result is comparable with the accuracy of the German Traffic Sign test set, given that the snow-covered sign in image 5 is barely recognizable even for the human eye. 
 
-| Image			        |     Prediction	        					| 
-|:---------------------:|:---------------------------------------------:| 
-| Stop Sign      		| Stop sign   									| 
-| U-turn     			| U-turn 										|
-| Yield					| Yield											|
-| 100 km/h	      		| Bumpy Road					 				|
-| Slippery Road			| Slippery Road      							|
+The code for calculating the predictions for these images is located in cell 12 of the Ipython notebook.
 
+For each image the top 5 prediction probabilities are listed and discussed below: 
 
-The model was able to correctly guess 4 of the 5 traffic signs, which gives an accuracy of 80%. This compares favorably to the accuracy on the test set of ...
+#### Image 1 - [7] 120 km/h speed limit
 
-#### 3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
+| Probability   |     Prediction	        		| 
+|:-------------:|:---------------------------------:| 
+| .902         	| 7 - Speed limit 100 km/h			| 
+| .084    		| 8 - Speed limit 120 km/h			|
+| .008			| 2 - Speed limit  50 km/h			|
+| .002	    	| 5 - Speed limit  80 km/h	 	    |
+| .002		    | 3 - Speed limit  60 km/h	 	    |
 
-The code for making predictions on my final model is located in the 11th cell of the Ipython notebook.
+For this image the consistent scaling/resizing in the pre-processing stage turned out to be crucial. Without it, the classifier would easily confuse the image with class 8 (speed limit 120 kmh).
 
-For the first image, the model is relatively sure that this is a stop sign (probability of 0.6), and the image does contain a stop sign. The top five soft max probabilities were
+#### Image 2 - [14] Stop
 
-| Probability         	|     Prediction	        					| 
-|:---------------------:|:---------------------------------------------:| 
-| .60         			| Stop sign   									| 
-| .20     				| U-turn 										|
-| .05					| Yield											|
-| .04	      			| Bumpy Road					 				|
-| .01				    | Slippery Road      							|
+| Probability   |     Prediction	        		| 
+|:-------------:|:---------------------------------:| 
+| 1.000        	| 14 - Stop        					| 
+|  .000     	| 15 - No vehicles					|
+|  .000     	| 38 - Keep right					|
+|  .000     	| 17 - No entry		 	            |
+|  .000     	|  8 - Speed limit 120 km/h			|
 
+#### Image 3 - [17] No Entry
 
-For the second image ... 
+| Probability   |     Prediction	        		| 
+|:-------------:|:---------------------------------:| 
+| .457      	| 22 - Bumpy road					| 
+| .228     		|  4 - Speed limit 70 km/h			|
+| .111			|  0 - Speed limit 20 km/h			|
+| .071	    	| 17 - No entry 				 	|
+| .020		    | 14 - Stop           				|
 
-### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
-#### 1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
+Not even the augmentation of the training set with generated noise was able to prevent a bad predicition with this particular test image. It seems that the classifier favors more complex features to match against the snowy pattern of the source image. The correct label is number 4 on the list of top 5 Softmax probabilities.
 
+#### Image 4 - [28] Children Crossing
 
+| Probability   |     Prediction	        		| 
+|:-------------:|:---------------------------------:| 
+| 1.000        	| 28 - Children crossing			| 
+|  .000     	| 29 - Bicycles crossing			|
+|  .000     	| 20 - Dangerous curve  			|
+|  .000     	| 30 - Beware of ice/snow		 	|
+|  .000     	| 22 - Bumpy road      				|
 
+#### Image 5 - [40] Roundabout Mandatory
 
+| Probability   |     Prediction	        		| 
+|:-------------:|:---------------------------------:| 
+| 1.000        	| 40 - Roundabout mandatory			| 
+|  .000     	|  7 - Speed limit 100 km/h			|
+|  .000     	| 12 - Priority road				|
+|  .000     	| 16 - Vehicles over 3.5         	|
+|  .000     	|  8 - Speed limit 120 km/h         |
 
+This particular selection of test images shows, that the accuracy as a metric for a CNN model can only be properly interpreted with respect to the nature of the test set - including a possible imbalance, as seen with the GTSRB dataset.
+Other metrics which could be considered in a further discussion, are the recall and precision for each class, giving indication to strengths and weaknesses of the model.
 
+### Visualizing the Neural Network
+
+Down below the output of the two convolutional layers of the used CNN is visualized, taking two of the new test set images as stimuli. The first layer produces a map highlighting features and contrast on the inside of the traffic sign while still representing the complete traffic sign as such. The second layer continues breaking down the full picture into smaller patterns found within the sign.
+
+#### Image 1 - 100 km/h speed limit
+
+![Feature Maps 100 Speed Limit](assets/vis_100_1.png)
+![Feature Maps 100 Speed Limit](assets/vis_100_2.png)
+
+#### Image 2 - stop sign
+
+![Feature Maps Stop Sign](assets/vis_stop_1.png)
+![Feature Maps Stop Sign](assets/vis_stop_2.png)
 
 # Structure
 
