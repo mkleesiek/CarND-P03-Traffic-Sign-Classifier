@@ -251,4 +251,4 @@ The implementation of this project is based on the 'Conda' lab environment provi
 It uses TensorFlow v1, at least for the time being.
 
 ## License
-The contents of this repository are covered under the [MIT License](https://github.com/mkleesiek/CarND-LaneLines-P1/blob/master/LICENSE).
+The contents of this repository are covered under the [MIT License](LICENSE).
